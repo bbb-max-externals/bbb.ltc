@@ -7,3 +7,9 @@
 [submodule ".agents/skills/max-patgen"]
 	path = .agents/skills/max-patgen
 	url = git@github.com:2bbb/max-patgen.git
+[submodule "deps/min-api"]
+	path = deps/min-api
+	url = https://github.com/Cycling74/min-api.git
+[submodule "deps/libltc"]
+	path = deps/libltc
+	url = https://github.com/x42/libltc.git
