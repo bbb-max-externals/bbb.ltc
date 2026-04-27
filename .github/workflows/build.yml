@@ -48,6 +48,8 @@ jobs:
           path: externals/
 
   package:
+    permissions:
+      contents: write
     needs: [build-macos, build-windows]
     runs-on: ubuntu-latest
     steps:
@@ -68,7 +70,7 @@ jobs:
       - name: Assemble package
         run: |
           # Required files
-          cp package-info.json dist/bbb.ltc/
+          cp package-info.json dist/bbb.ltc/ 2>/dev/null || true
           cp LICENSE dist/bbb.ltc/ 2>/dev/null || true
           cp README.md dist/bbb.ltc/ 2>/dev/null || true
 
