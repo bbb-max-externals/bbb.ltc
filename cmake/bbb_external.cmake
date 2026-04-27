@@ -78,7 +78,17 @@ function(bbb_add_external)
 	set_target_properties(${EXTERNAL_NAME} PROPERTIES
 		OUTPUT_NAME "${EXTERNAL_NAME}"
 		PREFIX ""
+	)
+	# macOS: .mxo bundle → LIBRARY_OUTPUT_DIRECTORY
+	# Windows: .mxe64 → RUNTIME_OUTPUT_DIRECTORY
+	# Both: set all output dirs to the same path
+	set_target_properties(${EXTERNAL_NAME} PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY "${C74_LIBRARY_OUTPUT_DIRECTORY}"
+		LIBRARY_OUTPUT_DIRECTORY_RELEASE "${C74_LIBRARY_OUTPUT_DIRECTORY}"
+		LIBRARY_OUTPUT_DIRECTORY_DEBUG "${C74_LIBRARY_OUTPUT_DIRECTORY}"
+		RUNTIME_OUTPUT_DIRECTORY "${C74_LIBRARY_OUTPUT_DIRECTORY}"
+		RUNTIME_OUTPUT_DIRECTORY_RELEASE "${C74_LIBRARY_OUTPUT_DIRECTORY}"
+		RUNTIME_OUTPUT_DIRECTORY_DEBUG "${C74_LIBRARY_OUTPUT_DIRECTORY}"
 	)
 
 	# --- macOS bundle (.mxo) ---
@@ -127,6 +137,19 @@ function(bbb_add_external)
 	# --- Windows (.mxe64) ---
 	if(WIN32)
 		set_target_properties(${EXTERNAL_NAME} PROPERTIES SUFFIX ".mxe64")
+
+		# link Max SDK libraries (static .lib)
+		set(MaxAPI_LIB "${MAX_SDK_INCLUDES}/x64/MaxAPI.lib")
+		set(MaxAudio_LIB "${MAX_SDK_MSP_INCLUDES}/x64/MaxAudio.lib")
+		set(Jitter_LIB "${MAX_SDK_JIT_INCLUDES}/x64/jitlib.lib")
+		target_link_libraries(${EXTERNAL_NAME} PUBLIC ${MaxAPI_LIB} ${MaxAudio_LIB} ${Jitter_LIB})
+
+		# Windows definitions
+		target_compile_definitions(${EXTERNAL_NAME} PRIVATE
+			MAXAPI_USE_MSCRT
+			WIN_VERSION
+			_USE_MATH_DEFINES
+		)
 	endif()
 
 	# --- include directories ---
