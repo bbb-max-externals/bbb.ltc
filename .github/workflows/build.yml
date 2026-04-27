@@ -77,12 +77,10 @@ jobs:
           cp -r extra dist/bbb.ltc/ 2>/dev/null || true
           cp -r patchers dist/bbb.ltc/ 2>/dev/null || true
 
-      - name: Create archives
+      - name: Create archive
         run: |
           cd dist
-          zip -r bbb.ltc-macos.zip bbb.ltc/ -x "bbb.ltc/externals/*.mxe64"
-          zip -r bbb.ltc-windows.zip bbb.ltc/ -x "bbb.ltc/externals/*.mxo"
-          zip -r bbb.ltc-universal.zip bbb.ltc/
+          zip -r bbb.ltc.zip bbb.ltc/
 
       - name: Upload artifact (latest)
         if: github.event_name == 'push'
