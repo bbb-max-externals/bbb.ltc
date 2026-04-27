@@ -44,12 +44,18 @@ LGPL-3.0 のため、Max external (.mxo) は動的リンク扱いで配布可能
 ## ビルド
 
 ```bash
+# macOS
 mkdir -p build && cd build
 cmake ..
 cmake --build .
+
+# Windows (Visual Studio 2022)
+cmake -B build -G "Visual Studio 17 2022" -A x64
+cmake --build build --config Release
 ```
 
-成果物は `externals/*.mxo` に出力される（Universal Binary: x86_64 + arm64）。
+成果物は `externals/*.mxo` (macOS Universal Binary: x86_64 + arm64) /
+`externals/*.mxe64` (Windows x64) に出力される。
 
 ルート CMakeLists.txt の `SUBDIRLIST` マクロが `source/projects/` を自動スキャンするため、新しい external ディレクトリを追加するだけでビルド対象に含まれる。
 
@@ -73,6 +79,13 @@ cmake --build .
 - **`std::filesystem` は使えない** — min-api pretarget が deployment target を 10.11 に固定
 - **`m_maxobj` は private** — `maxobj()` メソッド経由でアクセス
 - **NIL マクロ衝突** — Max SDK の `#define NIL` と他ライブラリの enum が衝突する場合は `#pragma push_macro("NIL")` / `#undef NIL`
+- **`MIN_TAGS` はカンマ区切り1文字列** — `{"a", "b"}` はエラー、`{"a, b"}` が正しい
+- **`sample_operator<N, M>`** — テンプレート引数は入出力数のみ。クラス名は渡さない
+- **`atom::get<int>()` は存在しない** — `static_cast<int>(atom)` を使う
+- **`attribute::get()` は非 const** — const メソッド内では `static_cast<int>(attr)` を使う
+- **symbol → std::string** — MSVC で曖昧。`std::string(sym.c_str())` を使う
+- **min-api pretarget/posttarget はサブディレクトリ構造と非互換** — 自前 CMake で回避
+- **Windows: `RUNTIME_OUTPUT_DIRECTORY` 必須** — `LIBRARY_OUTPUT_DIRECTORY` だけでは .mxe64 が所定位置に出力されない
 
 ## Skills
 
