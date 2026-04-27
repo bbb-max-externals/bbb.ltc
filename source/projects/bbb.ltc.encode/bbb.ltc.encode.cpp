@@ -60,7 +60,7 @@ public:
 		MIN_FUNCTION {
 			if (args.size() >= 1 && args[0].type() == c74::min::message_type::symbol_argument) {
 				c74::min::symbol sym = args[0];
-				std::string str(sym);
+				std::string str(sym.c_str());
 				int h, m, s, f;
 				if (parse_timecode_string(str, h, m, s, f)) {
 					hours = h;
