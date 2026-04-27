@@ -3,7 +3,7 @@
 class bbb_ltc_mtc : public c74::min::object<bbb_ltc_mtc> {
 public:
 	MIN_DESCRIPTION{"LTC <-> MTC (MIDI Timecode) converter"};
-	MIN_TAGS{"timecode", "ltc", "mtc", "midi"};
+	MIN_TAGS{"timecode, ltc, mtc, midi"};
 	MIN_AUTHOR{"2bit"};
 
 	// --- inlets / outlets ---
@@ -28,10 +28,10 @@ public:
 				return {};
 			}
 			try {
-				int h = c74::min::atom::get<int>(args[0]);
-				int m = c74::min::atom::get<int>(args[1]);
-				int s = c74::min::atom::get<int>(args[2]);
-				int f = c74::min::atom::get<int>(args[3]);
+				int h = static_cast<int>(args[0]);
+				int m = static_cast<int>(args[1]);
+				int s = static_cast<int>(args[2]);
+				int f = static_cast<int>(args[3]);
 				encode_qf(h, m, s, f, fps);
 			}
 			catch (...) {
@@ -45,7 +45,7 @@ public:
 		MIN_FUNCTION {
 			if (args.empty()) return {};
 			try {
-				int byte = c74::min::atom::get<int>(args[0]);
+				int byte = static_cast<int>(args[0]);
 				if (byte < 0 || byte > 127) {
 					cerr << "bbb.ltc.mtc: byte must be 0-127" << c74::min::endl;
 					return {};
@@ -66,10 +66,10 @@ public:
 				return {};
 			}
 			try {
-				int h = c74::min::atom::get<int>(args[0]);
-				int m = c74::min::atom::get<int>(args[1]);
-				int s = c74::min::atom::get<int>(args[2]);
-				int f = c74::min::atom::get<int>(args[3]);
+				int h = static_cast<int>(args[0]);
+				int m = static_cast<int>(args[1]);
+				int s = static_cast<int>(args[2]);
+				int f = static_cast<int>(args[3]);
 				encode_fullframe(h, m, s, f, fps);
 			}
 			catch (...) {

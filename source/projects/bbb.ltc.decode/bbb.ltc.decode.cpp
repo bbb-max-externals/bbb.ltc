@@ -5,7 +5,7 @@
 class bbb_ltc_decode : public c74::min::object<bbb_ltc_decode> {
 public:
 	MIN_DESCRIPTION{"Decode timecode to formatted string, frame count, and seconds"};
-	MIN_TAGS{"timecode", "ltc", "smpte", "decode"};
+	MIN_TAGS{"timecode, ltc, smpte, decode"};
 	MIN_AUTHOR{"2bit"};
 
 	c74::min::inlet<> input{this, "(list h m s f) or (int) frame count"};

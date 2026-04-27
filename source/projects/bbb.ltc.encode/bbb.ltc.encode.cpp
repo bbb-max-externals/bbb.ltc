@@ -10,7 +10,7 @@ extern "C" {
 class bbb_ltc_encode : public c74::min::object<bbb_ltc_encode> {
 public:
 	MIN_DESCRIPTION{"Encode timecode values to LTC frame data"};
-	MIN_TAGS{"timecode", "ltc", "smpte", "encode"};
+	MIN_TAGS{"timecode, ltc, smpte, encode"};
 	MIN_AUTHOR{"2bit"};
 
 	c74::min::inlet<> input{this, "(list h m s f) or (text) HH:MM:SS:FF or bang"};
@@ -58,7 +58,7 @@ public:
 
 	c74::min::message<> text_msg{this, "text", "Parse formatted timecode string",
 		MIN_FUNCTION {
-			if (args.size() >= 1 && args[0].type() == c74::min::data_type::symbol) {
+			if (args.size() >= 1 && args[0].type() == c74::min::message_type::symbol_argument) {
 				c74::min::symbol sym = args[0];
 				std::string str(sym);
 				int h, m, s, f;
@@ -109,7 +109,7 @@ private:
 	}
 
 	enum LTC_TV_STANDARD get_ltc_standard() const {
-		switch (fps.get()) {
+		switch (static_cast<int>(fps)) {
 			case 0:  return LTC_TV_FILM_24;
 			case 1:  return LTC_TV_625_50;
 			case 2:  return LTC_TV_525_60;

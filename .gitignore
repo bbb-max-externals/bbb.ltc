@@ -1,2 +1,4 @@
 build/
 libltc/
+externals/*.mxo
+.DS_Store

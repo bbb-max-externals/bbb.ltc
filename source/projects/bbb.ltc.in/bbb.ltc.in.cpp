@@ -10,10 +10,10 @@
 
 class bbb_ltc_in
     : public c74::min::object<bbb_ltc_in>,
-      public c74::min::sample_operator<bbb_ltc_in, 1> {
+      public c74::min::sample_operator<1, 1> {
 public:
     MIN_DESCRIPTION{"Decode LTC audio signal to SMPTE timecode"};
-    MIN_TAGS{"ltc", "timecode", "smpte", "audio"};
+    MIN_TAGS{"ltc, timecode, smpte, audio"};
     MIN_AUTHOR{"2bit"};
 
     c74::min::outlet<> m_timecode_out{
