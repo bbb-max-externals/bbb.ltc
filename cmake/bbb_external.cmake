@@ -37,7 +37,7 @@ function(bbb_add_external)
 
 	# --- include pretarget (once) ---
 	if(NOT C74_MIN_PRETARGET_INCLUDED)
-		include(${C74_MIN_API_DIR}/script/max-pretarget.cmake)
+		include(${C74_MIN_API_DIR}/script/min-pretarget.cmake)
 		set(C74_MIN_PRETARGET_INCLUDED TRUE CACHE INTERNAL "")
 	endif()
 
@@ -49,34 +49,37 @@ function(bbb_add_external)
 	# --- shared headers ---
 	set(SHARED_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../bbb")
 
+	# --- derive unique target name from directory name ---
+	get_filename_component(EXTERNAL_NAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
+
 	# --- add library ---
-	add_library(${PROJECT_NAME} MODULE ${ARG_SOURCES})
+	add_library(${EXTERNAL_NAME} MODULE ${ARG_SOURCES})
 
 	# --- output directory ---
-	set_target_properties(${PROJECT_NAME} PROPERTIES
+	set_target_properties(${EXTERNAL_NAME} PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY "${C74_LIBRARY_OUTPUT_DIRECTORY}"
 	)
 
 	# --- include directories ---
-	target_include_directories(${PROJECT_NAME} PRIVATE
+	target_include_directories(${EXTERNAL_NAME} PRIVATE
 		${C74_MIN_API_DIR}/include
 		${SHARED_INCLUDE_DIR}
 		${ARG_INCLUDES}
 	)
 
 	# --- link libraries ---
-	target_link_libraries(${PROJECT_NAME} PRIVATE ${ARG_DEPS})
+	target_link_libraries(${EXTERNAL_NAME} PRIVATE ${ARG_DEPS})
 
 	# --- RPATH ---
 	if(ARG_RPATH)
-		set_target_properties(${PROJECT_NAME} PROPERTIES
+		set_target_properties(${EXTERNAL_NAME} PROPERTIES
 			BUILD_RPATH "${ARG_RPATH}"
 			INSTALL_RPATH "${ARG_RPATH}"
 		)
 	endif()
 
 	# --- include posttarget ---
-	include(${C74_MIN_API_DIR}/script/max-posttarget.cmake)
+	include(${C74_MIN_API_DIR}/script/min-posttarget.cmake)
 
 	# --- help file copy ---
 	if(NOT ARG_NO_HELP_COPY)
