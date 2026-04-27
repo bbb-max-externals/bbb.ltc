@@ -1,0 +1,27 @@
+{
+    "title": "bbb.ltc",
+    "description": "LTC / SMPTE timecode external objects for Max/MSP",
+    "author": "2bit",
+    "website": "",
+    "extends": "",
+    "extensible": 0,
+    "homepatcher": "",
+    "max_version_min": "8.0",
+    "os": {
+        "macintosh": {
+            "externals": [
+                "externals/"
+            ],
+            "help": [
+                "help/"
+            ]
+        }
+    },
+    "filelist": {
+        "externals/bbb.ltc.in.mxo": {},
+        "externals/bbb.ltc.out.mxo": {},
+        "externals/bbb.ltc.mtc.mxo": {},
+        "externals/bbb.ltc.decode.mxo": {},
+        "externals/bbb.ltc.encode.mxo": {}
+    }
+}
