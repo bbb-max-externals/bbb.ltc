@@ -1,10 +1,12 @@
-name: Build
+name: Build & Release
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  release:
+    types: [published]
 
 jobs:
   build-macos:
@@ -23,7 +25,7 @@ jobs:
       - name: Upload externals
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-macos
+          name: externals-macos
           path: externals/
 
   build-windows:
@@ -42,5 +44,55 @@ jobs:
       - name: Upload externals
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-windows
+          name: externals-windows
           path: externals/
+
+  package:
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download macOS externals
+        uses: actions/download-artifact@v4
+        with:
+          name: externals-macos
+          path: dist/bbb.ltc/externals/
+
+      - name: Download Windows externals
+        uses: actions/download-artifact@v4
+        with:
+          name: externals-windows
+          path: dist/bbb.ltc/externals/
+
+      - name: Assemble package
+        run: |
+          # Required files
+          cp package-info.json dist/bbb.ltc/
+          cp LICENSE dist/bbb.ltc/ 2>/dev/null || true
+          cp README.md dist/bbb.ltc/ 2>/dev/null || true
+
+          # Optional directories
+          cp -r help dist/bbb.ltc/ 2>/dev/null || true
+          cp -r extra dist/bbb.ltc/ 2>/dev/null || true
+          cp -r patchers dist/bbb.ltc/ 2>/dev/null || true
+
+      - name: Create archives
+        run: |
+          cd dist
+          zip -r bbb.ltc-macos.zip bbb.ltc/ -x "bbb.ltc/externals/*.mxe64"
+          zip -r bbb.ltc-windows.zip bbb.ltc/ -x "bbb.ltc/externals/*.mxo"
+          zip -r bbb.ltc-universal.zip bbb.ltc/
+
+      - name: Upload artifact (latest)
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbb.ltc-latest
+          path: dist/*.zip
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip

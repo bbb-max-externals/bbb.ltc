@@ -1,0 +1,21 @@
+LICENSE
+=======
+
+bbb.ltc — Max/MSP external objects for LTC/SMPTE timecode handling
+
+Copyright (c) 2025-2026 2bit
+
+Project License
+---------------
+LGPL-3.0-or-later
+Full license text: https://www.gnu.org/licenses/lgpl-3.0.txt
+
+Dependencies
+------------
+libltc — https://github.com/x42/libltc
+License: LGPL-3.0
+The project is distributed as dynamic modules (.mxo/.mxe64), which satisfies LGPL requirements.
+
+MTCParser — https://github.com/hideakitai/MTCParser
+License: MIT
+Header-only library (optional, may be used in future versions)

@@ -15,6 +15,14 @@
             "help": [
                 "help/"
             ]
+        },
+        "windows": {
+            "externals": [
+                "externals/"
+            ],
+            "help": [
+                "help/"
+            ]
         }
     },
     "filelist": {
@@ -22,6 +30,11 @@
         "externals/bbb.ltc.out.mxo": {},
         "externals/bbb.ltc.mtc.mxo": {},
         "externals/bbb.ltc.decode.mxo": {},
-        "externals/bbb.ltc.encode.mxo": {}
+        "externals/bbb.ltc.encode.mxo": {},
+        "externals/bbb.ltc.in.mxe64": {},
+        "externals/bbb.ltc.out.mxe64": {},
+        "externals/bbb.ltc.mtc.mxe64": {},
+        "externals/bbb.ltc.decode.mxe64": {},
+        "externals/bbb.ltc.encode.mxe64": {}
     }
 }
