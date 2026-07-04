@@ -12,8 +12,7 @@ namespace ltc {
 enum class Framerate {
     FPS_24  = 24,
     FPS_25  = 25,
-    // two enum values share int=30; is_drop_frame() distinguishes them
-    FPS_2997 = 30,
+    FPS_2997 = 2997,
     FPS_30   = 30
 };
 
@@ -32,7 +31,13 @@ constexpr double exact_framerate(Framerate fps) {
 }
 
 constexpr int nominal_fps(Framerate fps) {
-    return static_cast<int>(fps);
+    switch(fps) {
+        case Framerate::FPS_24:   return 24;
+        case Framerate::FPS_25:   return 25;
+        case Framerate::FPS_2997: return 30;
+        case Framerate::FPS_30:   return 30;
+    }
+    return 0;
 }
 
 inline Framerate framerate_from_int(int fps_val, bool drop_frame = false) {
