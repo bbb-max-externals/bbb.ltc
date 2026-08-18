@@ -14,7 +14,7 @@ LTC / SMPTE timecode external objects for Max/MSP.
 
 ## Installation
 
-1. Download the latest release from [GitHub Releases](https://github.com/2bbb/bbb.ltc/releases)
+1. Download the latest release from [GitHub Releases](https://github.com/bbb-max-externals/bbb.ltc/releases)
 2. Extract the archive
 3. Move the `bbb.ltc` folder to your Max Packages directory:
    - macOS: `~/Documents/Max 8/Packages/`
