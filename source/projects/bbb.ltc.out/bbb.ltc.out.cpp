@@ -5,6 +5,7 @@
 #include <ltc.h>
 #pragma pop_macro("NIL")
 
+#include <mutex>
 #include <vector>
 
 
@@ -27,6 +28,7 @@ public:
         c74::min::description{"Frame rate: 24 / 25 / 29.97 / 30."},
         c74::min::enum_map{"24", "25", "29.97", "30"},
         c74::min::setter{[this](const c74::min::atoms& args, int) -> c74::min::atoms {
+            std::lock_guard<std::mutex> lk(m_encoder_mtx);
             reinit_encoder();
             return args;
         }}
@@ -35,6 +37,7 @@ public:
     c74::min::attribute<int> sample_rate{this, "sample_rate", 44100,
         c74::min::description{"Audio sample rate for LTC generation."},
         c74::min::setter{[this](const c74::min::atoms& args, int) -> c74::min::atoms {
+            std::lock_guard<std::mutex> lk(m_encoder_mtx);
             reinit_encoder();
             return args;
         }}
@@ -43,6 +46,7 @@ public:
     c74::min::attribute<double> volume{this, "volume", -3.0,
         c74::min::description{"Output volume in dBFS."},
         c74::min::setter{[this](const c74::min::atoms& args, int) -> c74::min::atoms {
+            std::lock_guard<std::mutex> lk(m_encoder_mtx);
             if (m_encoder) {
                 ltc_encoder_set_volume(m_encoder, static_cast<double>(volume));
                 reencode_current_frame();
@@ -56,6 +60,7 @@ public:
     c74::min::message<> list_msg{this, "list", "set timecode (h m s f)",
         MIN_FUNCTION {
             if (args.size() >= 4) {
+                std::lock_guard<std::mutex> lk(m_encoder_mtx);
                 set_timecode(
                     static_cast<int>(args[0]),
                     static_cast<int>(args[1]),
@@ -70,6 +75,7 @@ public:
     c74::min::message<> int_msg{this, "int", "set timecode from total frame count",
         MIN_FUNCTION {
             if (args.size() >= 1) {
+                std::lock_guard<std::mutex> lk(m_encoder_mtx);
                 set_timecode_from_frames(static_cast<int>(args[0]));
             }
             return {};
@@ -92,6 +98,9 @@ public:
     }
 
     ~bbb_ltc_out() {
+        // Block until any in-flight operator() call releases the lock, so we
+        // never free the encoder while the audio thread is inside it.
+        std::lock_guard<std::mutex> lk(m_encoder_mtx);
         if (m_encoder) {
             ltc_encoder_free(m_encoder);
             m_encoder = nullptr;
@@ -101,7 +110,12 @@ public:
     // --- Signal perform (audio thread) ---
 
     double operator()(double /*input*/) {
-        if (!m_encoder) {
+        // Non-blocking: the main thread holds m_encoder_mtx only while
+        // (re)initialising the encoder or jamming a new timecode/volume. If we
+        // cannot acquire it we output silence for this sample rather than race
+        // on the encoder/buffer or block the audio thread.
+        std::unique_lock<std::mutex> lk(m_encoder_mtx, std::try_to_lock);
+        if (!lk.owns_lock() || !m_encoder) {
             return 0.0;
         }
 
@@ -126,9 +140,16 @@ private:
     size_t m_buffer_size{0};
     size_t m_buffer_pos{0};
 
+    // Guards the encoder + m_ltc_buffer + buffer indices against the audio
+    // thread. The audio thread acquires with try_lock only; every main-thread
+    // entry point (setters, messages, init timer, dtor) holds it. The helpers
+    // below assume the caller already holds it.
+    std::mutex m_encoder_mtx;
+
     // --- Deferred init timer ---
     c74::min::timer<c74::min::timer_options::defer_delivery> m_init_timer{this,
         MIN_FUNCTION {
+            std::lock_guard<std::mutex> lk(m_encoder_mtx);
             init_encoder();
             return {};
         }
@@ -274,12 +295,18 @@ private:
         set_timecode(h, mi, s, f);
     }
 
+    // Called on the main thread (bang). Reads the encoder under the lock, then
+    // releases it before sending so the audio thread is not stalled by the
+    // outlet traversal.
     void output_current_timecode() {
-        if (!m_encoder) {
-            return;
-        }
         SMPTETimecode tc;
-        ltc_encoder_get_timecode(m_encoder, &tc);
+        {
+            std::lock_guard<std::mutex> lk(m_encoder_mtx);
+            if (!m_encoder) {
+                return;
+            }
+            ltc_encoder_get_timecode(m_encoder, &tc);
+        }
 
         m_status_out.send({
             c74::min::symbol("list"),
