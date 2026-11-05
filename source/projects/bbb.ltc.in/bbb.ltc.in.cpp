@@ -6,6 +6,7 @@
 #include <atomic>
 #include <chrono>
 #include <cmath>
+#include <mutex>
 #include <vector>
 
 class bbb_ltc_in
@@ -59,6 +60,9 @@ public:
 
     ~bbb_ltc_in() {
         m_lock_timer.stop();
+        // Block until any in-flight operator() call releases the lock, so we
+        // never free the decoder while the audio thread is inside it.
+        std::lock_guard<std::mutex> lk(m_decoder_mtx);
         if (m_decoder) {
             ltc_decoder_free(m_decoder);
             m_decoder = nullptr;
@@ -67,7 +71,12 @@ public:
 
     // audio thread — do NOT call outlet.send() here
     double operator()(double input) {
-        if (!m_decoder || m_recreating.load(std::memory_order_acquire)) {
+        // Non-blocking: the main thread holds m_decoder_mtx only while
+        // (re)creating or freeing the decoder. If we cannot acquire it we skip
+        // this sample rather than risk a use-after-free or block the audio
+        // thread (no priority inversion).
+        std::unique_lock<std::mutex> lk(m_decoder_mtx, std::try_to_lock);
+        if (!lk.owns_lock() || !m_decoder) {
             return 0.0;
         }
 
@@ -117,7 +126,9 @@ private:
     };
 
     LTCDecoder *m_decoder{nullptr};
-    std::atomic<bool> m_recreating{false};
+    // Guards decoder lifetime + the audio-thread decode state below against the
+    // main-thread (re)create/free. Audio thread acquires with try_lock only.
+    std::mutex m_decoder_mtx;
     std::vector<float> m_sample_buffer;
     size_t m_buffer_write_pos{0};
     ltc_off_t m_sample_position{0};
@@ -192,7 +203,9 @@ private:
     }
 
     void recreate_decoder() {
-        m_recreating.store(true, std::memory_order_release);
+        // Hold the lock across free+create+reset so the audio thread (which
+        // only ever try_locks) can never observe a half-torn-down decoder.
+        std::lock_guard<std::mutex> lk(m_decoder_mtx);
 
         if (m_decoder) {
             ltc_decoder_free(m_decoder);
@@ -216,8 +229,6 @@ private:
         m_buffer_write_pos = 0;
         m_sample_position = 0;
         m_pending_valid.store(false, std::memory_order_release);
-
-        m_recreating.store(false, std::memory_order_release);
     }
 };
 
